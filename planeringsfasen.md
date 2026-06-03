@@ -1,5 +1,4 @@
 # Inlämning 1 - Planeringsfasen 
-# Inlämning 1 - Planeringsfasen
 Identifierade hotscenarier
 ## Hotmodellering (STRIDE)
 | ID | Hot                                          | Kategori |
