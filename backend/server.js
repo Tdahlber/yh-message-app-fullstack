@@ -45,9 +45,21 @@ const generalLimiter = rateLimit({
 
 
 app.use(helmet())
-app.use(cors({
-  origin: "*",
-}))
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow non-browser requests (no Origin header)
+      if (!origin) return callback(null, true)
+      if (allowedOrigins.includes(origin)) return callback(null, true)
+      return callback(null, false)
+    },
+  })
+)
 app.use(express.json())
 // Tillämpa den generella rate limiter på alla routes
 app.use(generalLimiter)
