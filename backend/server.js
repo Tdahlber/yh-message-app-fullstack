@@ -5,6 +5,7 @@ import express from "express"
 import mongoose from "mongoose"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
+// RATE LIMITING - Importera express-rate-limit för att begränsa antalet förfrågningar
 import rateLimit from "express-rate-limit"
 import { Message } from "./models/Message.js"
 import { User } from "./models/User.js"
@@ -17,34 +18,45 @@ if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is not set in .env")
 const PORT = process.env.PORT || "3000"
 const app = express()
 
-// Rate limiting middleware
+// ===== RATE LIMITING - TILLAGD SÄKERHETSFUNKTION =====
+// Syftet: Skydda servern från missbruk genom att begränsa antalet förfrågningar
+// från varje IP-adress
+
+// authLimiter: Strikt gräns för autentiseringsendpunkter (register, login)
+// Skyddar mot brute-force-attacker på lösenord
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per windowMs
+  windowMs: 15 * 60 * 1000, // Tidsfönster: 15 minuter
+  max: 5, // Max 5 förfrågningar per tidsfönster per IP
   message: "Too many authentication attempts, please try again later",
-  standardHeaders: true,
-  legacyHeaders: false,
+  standardHeaders: true, // Inkludera RateLimit-Info i response headers
+  legacyHeaders: false, // Inaktivera X-RateLimit-* headers
 })
 
+// generalLimiter: Generell gräns för alla andra routes
+// Tillämpas globalt för att skydda mot DOS-attacker
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30, // 30 requests per windowMs
+  windowMs: 15 * 60 * 1000, // Tidsfönster: 15 minuter
+  max: 30, // Max 30 förfrågningar per tidsfönster per IP
   message: "Too many requests, please try again later",
   standardHeaders: true,
   legacyHeaders: false,
 })
+// ===== SLUT RATE LIMITING =====
+
 
 app.use(helmet())
 app.use(cors({
   origin: "*",
 }))
 app.use(express.json())
+// Tillämpa den generella rate limiter på alla routes
 app.use(generalLimiter)
 
 app.get("/", (req, res) => {
   res.send(listEndpoints(app))
 })
 
+// RATE LIMITING: authLimiter tillagd för att skydda mot brute-force-attacker
 app.post("/register", authLimiter, async (req, res) => {
   try {
     const { email, password, username } = req.body
@@ -93,6 +105,7 @@ app.post("/register", authLimiter, async (req, res) => {
   }
 })
 
+// RATE LIMITING: authLimiter tillagd för att skydda mot brute-force-attacker
 app.post("/login", authLimiter, async (req, res) => {
   try {
     const { login, password } = req.body
