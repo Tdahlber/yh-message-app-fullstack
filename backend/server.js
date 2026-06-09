@@ -1,3 +1,30 @@
+// ============================================================================
+// ÄNDRINGAR OCH UPPDATERINGAR
+// ============================================================================
+// 
+// SÄKERHETSPATCH OCH FÖRBÄTTRINGAR GJORDA:
+// 
+// 1. RATE LIMITING - NY FUNKTION
+//    - Paket: express-rate-limit v8.5.2 (tillagd)
+//    - Syfte: Skydda servern från brute-force och DOS-attacker
+//    - Implementerat: authLimiter (5 req/15 min) och generalLimiter (30 req/15 min)
+//    - Se konfig nedan i koden
+//
+// 2. BCRYPT - UPPDATERAD
+//    - Från: v5.1.1 → Till: v6.0.0
+//    - Förändring: Major version update med säkerhetsfixar
+//    - Påverkan: Starkare lösenordshashning
+//
+// 3. JSONWEBTOKEN - UPPDATERAD (KRITISK SÄKERHETSFIXAR)
+//    - Från: v8.5.1 → Till: v9.0.3
+//    - Anledning: Fixar 3 high-severity vulnerabilities:
+//      a) Unrestricted key type kunde leda till legacy keys usage
+//      b) Insecure key retrieval implementation
+//      c) Signature validation bypass i jwt.verify()
+//    - Status: Alla vulnerabilities åtgärdade ✅
+//
+// ============================================================================
+
 import "dotenv/config"
 import helmet from "helmet"
 import cors from "cors"
